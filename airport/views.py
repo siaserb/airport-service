@@ -13,7 +13,7 @@ from airport.models import(
 )
 from airport.serializers import (
     AirportSerializer,
-    AirplaneTypeSerializer,
+    AirplaneTypeSerializer, RouteSerializer,
 )
 
 class AirportViewSet(
@@ -31,3 +31,11 @@ class AirplaneTypeViewSet(
 ):
     queryset = AirplaneType.objects.all()
     serializer_class = AirplaneTypeSerializer
+
+class RouteViewSet(
+    mixins.CreateModelMixin,
+    mixins.ListModelMixin,
+    GenericViewSet,
+):
+    queryset = Route.objects.all().select_related("source", "destination")
+    serializer_class = RouteSerializer
