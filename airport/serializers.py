@@ -18,3 +18,10 @@ class AirportSerializer(serializers.ModelSerializer):
     class Meta:
         model = Airport
         fields = ("id", "name")
+
+
+class AirplaneTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AirplaneType
+        fields = ("id", "name")
+
