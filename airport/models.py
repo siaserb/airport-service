@@ -1,4 +1,5 @@
 from django.core.exceptions import ValidationError
+from django.core.validators import MinValueValidator
 from django.db import models
 
 from airport_service import settings
@@ -14,7 +15,9 @@ class Airport(models.Model):
 class Route(models.Model):
     source = models.ForeignKey(Airport, on_delete=models.CASCADE, related_name="source_routes")
     destination = models.ForeignKey(Airport, on_delete=models.CASCADE, related_name="destination_routes")
-    distance = models.IntegerField()
+    distance = models.IntegerField(
+        validators=[MinValueValidator(1)]
+    )
 
     def __str__(self):
         return f"{self.source.name} - {self.destination.name}"
@@ -30,8 +33,8 @@ class AirplaneType(models.Model):
 
 class Airplane(models.Model):
     name = models.CharField(max_length=255, unique=True)
-    rows = models.IntegerField()
-    seats_in_row = models.IntegerField()
+    rows = models.IntegerField(validators=[MinValueValidator(1)])
+    seats_in_row = models.IntegerField(validators=[MinValueValidator(1)])
     airplane_type = models.ForeignKey(
         AirplaneType, on_delete=models.CASCADE, related_name="airplanes"
     )
