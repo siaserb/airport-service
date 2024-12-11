@@ -7,6 +7,7 @@ from airport_service import settings
 
 class Airport(models.Model):
     name = models.CharField(max_length=255, unique=True)
+    closest_big_city = models.CharField(max_length=255)
 
     def __str__(self):
         return self.name
@@ -21,7 +22,6 @@ class Route(models.Model):
 
     def __str__(self):
         return f"{self.source.name} - {self.destination.name}"
-
 
 
 class AirplaneType(models.Model):
@@ -45,7 +45,6 @@ class Airplane(models.Model):
 
     def __str__(self):
         return self.name
-
 
 
 class Order(models.Model):
