@@ -1,5 +1,4 @@
 from django.db import transaction
-from django.db.models import CharField
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
@@ -108,7 +107,7 @@ class TicketSeatsSerializer(TicketSerializer):
 
 
 class FlightDetailSerializer(FlightSerializer):
-    crews = CrewSerializer(many=True, read_only=True)
+    crew = CrewSerializer(many=True, read_only=True)
     airplane = AirplaneSerializer(many=False, read_only=True)
     route = RouteSerializer(many=False, read_only=True)
     taken_places = TicketSeatsSerializer(
@@ -124,7 +123,7 @@ class FlightDetailSerializer(FlightSerializer):
             "route",
             "airplane",
             "taken_places",
-            "crews"
+            "crew"
         )
 
 
