@@ -1,6 +1,9 @@
 from datetime import datetime
 
-from rest_framework import viewsets, mixins
+from rest_framework import viewsets, mixins, status
+from rest_framework.decorators import action
+from rest_framework.permissions import IsAdminUser
+from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from django.db.models import F, Count
 
@@ -23,28 +26,58 @@ from airport.serializers import (
     FlightListSerializer,
     FlightDetailSerializer,
     OrderSerializer,
-    OrderListSerializer, AirplaneSerializer
+    OrderListSerializer, AirplaneSerializer, AirplaneTypeImageSerializer, AirportImageSerializer
 )
 
 
+class UploadImageMixin(GenericViewSet):
+    @action(
+        methods=["POST"],
+        detail=True,
+        permission_classes=[IsAdminUser],
+        url_path="upload-image"
+    )
+    def upload_image(self, request, pk=None):
+        """General method to handle image uploads for any model."""
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 class AirportViewSet(
+    UploadImageMixin,
     mixins.CreateModelMixin,
     mixins.ListModelMixin,
-    GenericViewSet,
 ):
     queryset = Airport.objects.all()
     serializer_class = AirportSerializer
 
+    def get_serializer_class(self):
+        if self.action == "upload_image":
+            return AirportImageSerializer
+
+        return AirportSerializer
+
 
 class AirplaneTypeViewSet(
+    UploadImageMixin,
     mixins.CreateModelMixin,
     mixins.ListModelMixin,
-    GenericViewSet,
 ):
     queryset = AirplaneType.objects.all()
     serializer_class = AirplaneTypeSerializer
 
-# TODO: add airplane_type filter
+    def get_serializer_class(self):
+        if self.action == "upload_image":
+            return AirplaneTypeImageSerializer
+
+        return AirplaneTypeSerializer
+
+
 class AirplaneViewSet(
     mixins.CreateModelMixin,
     mixins.ListModelMixin,
@@ -66,8 +99,6 @@ class AirplaneViewSet(
             queryset = queryset.filter(name__icontains=airplane_name)
 
         return queryset
-
-
 
 
 class RouteViewSet(

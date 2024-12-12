@@ -14,24 +14,46 @@ from airport.models import (
 )
 
 
+class AirportImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Airport
+        fields = ("id", "image")
+
+
 class AirportSerializer(serializers.ModelSerializer):
     class Meta:
         model = Airport
-        fields = ("id", "name", "closest_big_city")
+        fields = ("id", "name", "closest_big_city", "image")
+
+
+class AirplaneTypeImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AirplaneType
+        fields = ("id", "image")
 
 
 class AirplaneTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = AirplaneType
-        fields = ("id", "name")
+        fields = ("id", "name", "image")
 
 
 class AirplaneSerializer(serializers.ModelSerializer):
     airplane_type = serializers.CharField(source="airplane_type.name")
-
+    airplane_type_image = serializers.ImageField(
+        source="airplane_type.image", read_only=True
+    )
     class Meta:
         model = Airplane
-        fields = ("id", "name", "rows", "seats_in_row", "capacity", "airplane_type")
+        fields = (
+            "id",
+            "name",
+            "rows",
+            "seats_in_row",
+            "capacity",
+            "airplane_type",
+            "airplane_type_image"
+        )
 
 
 class RouteSerializer(serializers.ModelSerializer):
@@ -43,10 +65,22 @@ class RouteSerializer(serializers.ModelSerializer):
 class RouteListSerializer(serializers.ModelSerializer):
     source_name = serializers.CharField(source="source.name")
     destination_name = serializers.CharField(source="destination.name")
-
+    source_image = serializers.ImageField(
+        source="source.image", read_only=True
+    )
+    destination_image = serializers.ImageField(
+        source="destination.image", read_only=True
+    )
     class Meta:
         model = Route
-        fields = ("id", "source_name", "destination_name", "distance")
+        fields = (
+            "id",
+            "source_name",
+            "source_image",
+            "destination_name",
+            "destination_image",
+            "distance"
+        )
 
 
 class CrewSerializer(serializers.ModelSerializer):

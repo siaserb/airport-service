@@ -1,13 +1,23 @@
+import pathlib
+import uuid
+
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
+from django.utils.text import slugify
 
 from airport_service import settings
 
 
+def airport_image_path(instance: "Airport", filename: str) -> pathlib.Path:
+    filename = (f"{slugify(instance.name)}-{uuid.uuid4()}"
+                + pathlib.Path(filename).suffix)
+    return pathlib.Path("uploads/airports/" / pathlib.Path(filename))
+
 class Airport(models.Model):
     name = models.CharField(max_length=255, unique=True)
     closest_big_city = models.CharField(max_length=255)
+    image = models.ImageField(null=True, upload_to=airport_image_path)
 
     def __str__(self):
         return self.name
@@ -24,8 +34,14 @@ class Route(models.Model):
         return f"{self.source.name} - {self.destination.name}"
 
 
+def airplane_type_image_path(instance: "AirplaneType", filename: str) -> pathlib.Path:
+    filename = (f"{slugify(instance.name)}-{uuid.uuid4()}"
+                + pathlib.Path(filename).suffix)
+    return pathlib.Path("uploads/airplane-types/" / pathlib.Path(filename))
+
 class AirplaneType(models.Model):
     name = models.CharField(max_length=255, unique=True)
+    image = models.ImageField(null=True, upload_to=airplane_type_image_path)
 
     def __str__(self):
         return self.name
@@ -77,7 +93,7 @@ class Flight(models.Model):
     )
     departure_time = models.DateTimeField()
     arrival_time = models.DateTimeField()
-    crews = models.ManyToManyField(
+    crew = models.ManyToManyField(
         Crew, related_name="flights", blank=True
     )
 
