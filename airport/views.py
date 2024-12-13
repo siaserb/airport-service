@@ -2,9 +2,10 @@ from datetime import datetime
 
 from rest_framework import viewsets, mixins, status
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAdminUser
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
+from rest_framework.pagination import PageNumberPagination
 from django.db.models import F, Count
 
 from airport.models import (
@@ -16,6 +17,7 @@ from airport.models import (
     Flight,
     Crew
 )
+from airport.permissions import IsAdminOrIfAuthenticatedReadOnly, AdminCreateOrReadOnly
 from airport.serializers import (
     AirportSerializer,
     AirplaneTypeSerializer,
@@ -28,6 +30,12 @@ from airport.serializers import (
     OrderSerializer,
     OrderListSerializer, AirplaneSerializer, AirplaneTypeImageSerializer, AirportImageSerializer
 )
+
+
+class MyPageNumberPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = "page_size"
+    max_page_size = 100
 
 
 class UploadImageMixin(GenericViewSet):
@@ -55,6 +63,8 @@ class AirportViewSet(
 ):
     queryset = Airport.objects.all()
     serializer_class = AirportSerializer
+    pagination_class = MyPageNumberPagination
+    permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
 
     def get_serializer_class(self):
         if self.action == "upload_image":
@@ -70,6 +80,8 @@ class AirplaneTypeViewSet(
 ):
     queryset = AirplaneType.objects.all()
     serializer_class = AirplaneTypeSerializer
+    pagination_class = MyPageNumberPagination
+    permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
 
     def get_serializer_class(self):
         if self.action == "upload_image":
@@ -85,6 +97,8 @@ class AirplaneViewSet(
 ):
     queryset = Airplane.objects.all().select_related("airplane_type")
     serializer_class = AirplaneSerializer
+    pagination_class = MyPageNumberPagination
+    permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
 
     def get_queryset(self):
         airplane_type_str_id = self.request.query_params.get("airplane_type")
@@ -108,6 +122,8 @@ class RouteViewSet(
 ):
     queryset = Route.objects.all().select_related("source", "destination")
     serializer_class = RouteSerializer
+    pagination_class = MyPageNumberPagination
+    permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
 
     def get_queryset(self):
         source_id_str = self.request.query_params.get("source")
@@ -136,6 +152,8 @@ class CrewViewSet(
 ):
     queryset = Crew.objects.all()
     serializer_class = CrewSerializer
+    pagination_class = MyPageNumberPagination
+    permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
 
 
 class FlightViewSet(viewsets.ModelViewSet):
@@ -151,6 +169,8 @@ class FlightViewSet(viewsets.ModelViewSet):
         )
     )
     serializer_class = FlightSerializer
+    pagination_class = MyPageNumberPagination
+    permission_classes = (AdminCreateOrReadOnly,)
 
     def get_queryset(self):
         route_id_str = self.request.query_params.get("route")
@@ -193,6 +213,8 @@ class OrderViewSet(
         "tickets__flight__route", "tickets__flight__airplane"
     )
     serializer_class = OrderSerializer
+    pagination_class = MyPageNumberPagination
+    permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
         return Order.objects.filter(user=self.request.user)
