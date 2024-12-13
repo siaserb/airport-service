@@ -179,6 +179,7 @@ You can log in directly through the Swagger interface using your superuser crede
 | GET         | Retrieve a list of flights              | All users (read-only) |
 | GET (detail)| Retrieve flight details                 | All users (read-only) |
 | POST        | Add a new flight                        | Admin only        |
+| DELETE      | Remove flight                           | Admin only        |
 
 **Filters:**
 - `route`: Filter by route (ID).
