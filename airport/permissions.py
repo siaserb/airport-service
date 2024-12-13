@@ -12,6 +12,7 @@ class IsAdminOrIfAuthenticatedReadOnly(BasePermission):
             or (request.user and request.user.is_staff)
         )
 
+
 class AdminCreateOrReadOnly(BasePermission):
     def has_permission(self, request, view):
         if request.method in SAFE_METHODS:

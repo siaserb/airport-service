@@ -1,5 +1,7 @@
 from datetime import datetime
 
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework import viewsets, mixins, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
@@ -9,15 +11,11 @@ from rest_framework.pagination import PageNumberPagination
 from django.db.models import F, Count
 
 from airport.models import (
-    Airport,
-    AirplaneType,
-    Airplane,
-    Route,
-    Order,
-    Flight,
-    Crew
+    Airport, AirplaneType, Airplane, Route, Order, Flight, Crew
 )
-from airport.permissions import IsAdminOrIfAuthenticatedReadOnly, AdminCreateOrReadOnly
+from airport.permissions import (
+    IsAdminOrIfAuthenticatedReadOnly, AdminCreateOrReadOnly
+)
 from airport.serializers import (
     AirportSerializer,
     AirplaneTypeSerializer,
@@ -28,7 +26,11 @@ from airport.serializers import (
     FlightListSerializer,
     FlightDetailSerializer,
     OrderSerializer,
-    OrderListSerializer, AirplaneSerializer, AirplaneTypeImageSerializer, AirportImageSerializer
+    OrderListSerializer,
+    AirplaneSerializer,
+    AirplaneTypeImageSerializer,
+    AirportImageSerializer,
+    AirplaneListSerializer,
 )
 
 
@@ -43,10 +45,9 @@ class UploadImageMixin(GenericViewSet):
         methods=["POST"],
         detail=True,
         permission_classes=[IsAdminUser],
-        url_path="upload-image"
+        url_path="upload-image",
     )
     def upload_image(self, request, pk=None):
-        """General method to handle image uploads for any model."""
         instance = self.get_object()
         serializer = self.get_serializer(instance, data=request.data)
         if serializer.is_valid():
@@ -114,6 +115,30 @@ class AirplaneViewSet(
 
         return queryset
 
+    def get_serializer_class(self):
+        if self.action == "list":
+            return AirplaneListSerializer
+        return AirplaneSerializer
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                "airplane_type",
+                type=OpenApiTypes.INT,
+                description="Filter by airplane type id "
+                            "(ex. ?airplane_type=2)",
+            ),
+            OpenApiParameter(
+                "airplane_name",
+                type=OpenApiTypes.STR,
+                description="Filter by airplane name "
+                            "(ex. ?airplane_name=Boeing)",
+            ),
+        ]
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
 
 class RouteViewSet(
     mixins.CreateModelMixin,
@@ -144,6 +169,23 @@ class RouteViewSet(
             return RouteListSerializer
         return RouteSerializer
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                "source",
+                type=OpenApiTypes.INT,
+                description="Filter by source id (ex. ?source=2)",
+            ),
+            OpenApiParameter(
+                "destination",
+                type=OpenApiTypes.INT,
+                description="Filter by destination id (ex. ?destination=3)",
+            ),
+        ]
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
 
 class CrewViewSet(
     mixins.CreateModelMixin,
@@ -163,8 +205,9 @@ class FlightViewSet(viewsets.ModelViewSet):
         .prefetch_related("crew")
         .annotate(
             tickets_available=(
-                    F("airplane__rows") * F("airplane__seats_in_row")
-                    - Count("tickets")
+                F("airplane__rows")
+                * F("airplane__seats_in_row")
+                - Count("tickets")
             )
         )
     )
@@ -195,6 +238,36 @@ class FlightViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(crew__id__in=crew_ints)
 
         return queryset
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                "route",
+                type=OpenApiTypes.INT,
+                description="Filter by route id (ex. ?route=2)",
+            ),
+            OpenApiParameter(
+                "airplane",
+                type=OpenApiTypes.INT,
+                description="Filter by airplane id (ex. ?airplane=2)",
+            ),
+            OpenApiParameter(
+                "crew",
+                type={"type": "list", "items": {"type": "number"}},
+                description="Filter by crew id (ex. ?crew=2,5)",
+            ),
+            OpenApiParameter(
+                "date",
+                type=OpenApiTypes.DATE,
+                description=(
+                    "Filter by departure date "
+                    "(ex. ?date=2019-01-01) of flight"
+                ),
+            ),
+        ]
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
 
     def get_serializer_class(self):
         if self.action == "list":

@@ -10,9 +10,12 @@ from airport_service import settings
 
 
 def airport_image_path(instance: "Airport", filename: str) -> pathlib.Path:
-    filename = (f"{slugify(instance.name)}-{uuid.uuid4()}"
-                + pathlib.Path(filename).suffix)
+    filename = (
+        f"{slugify(instance.name)}-{uuid.uuid4()}"
+        + pathlib.Path(filename).suffix
+    )
     return pathlib.Path("uploads/airports/" / pathlib.Path(filename))
+
 
 class Airport(models.Model):
     name = models.CharField(max_length=255, unique=True)
@@ -24,20 +27,30 @@ class Airport(models.Model):
 
 
 class Route(models.Model):
-    source = models.ForeignKey(Airport, on_delete=models.CASCADE, related_name="source_routes")
-    destination = models.ForeignKey(Airport, on_delete=models.CASCADE, related_name="destination_routes")
-    distance = models.IntegerField(
-        validators=[MinValueValidator(1)]
+    source = models.ForeignKey(
+        Airport, on_delete=models.CASCADE, related_name="source_routes"
     )
+    destination = models.ForeignKey(
+        Airport, on_delete=models.CASCADE, related_name="destination_routes"
+    )
+    distance = models.IntegerField(validators=[MinValueValidator(1)])
+
+    class Meta:
+        unique_together = ("source", "destination")
 
     def __str__(self):
         return f"{self.source.name} - {self.destination.name}"
 
 
-def airplane_type_image_path(instance: "AirplaneType", filename: str) -> pathlib.Path:
-    filename = (f"{slugify(instance.name)}-{uuid.uuid4()}"
-                + pathlib.Path(filename).suffix)
+def airplane_type_image_path(
+        instance: "AirplaneType", filename: str
+) -> pathlib.Path:
+    filename = (
+        f"{slugify(instance.name)}-{uuid.uuid4()}"
+        + pathlib.Path(filename).suffix
+    )
     return pathlib.Path("uploads/airplane-types/" / pathlib.Path(filename))
+
 
 class AirplaneType(models.Model):
     name = models.CharField(max_length=255, unique=True)
@@ -93,12 +106,18 @@ class Flight(models.Model):
     )
     departure_time = models.DateTimeField()
     arrival_time = models.DateTimeField()
-    crew = models.ManyToManyField(
-        Crew, related_name="flights", blank=True
-    )
+    crew = models.ManyToManyField(Crew, related_name="flights", blank=True)
 
     class Meta:
         ordering = ["-departure_time"]
+
+    def clean(self):
+        if self.arrival_time <= self.departure_time:
+            raise ValidationError("Arrival time must be after departure time.")
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return (
@@ -127,9 +146,9 @@ class Ticket(models.Model):
                 raise error_to_raise(
                     {
                         ticket_attr_name: f"{ticket_attr_name} "
-                                          f"number must be in available range: "
-                                          f"(1, {airplane_attr_name}): "
-                                          f"(1, {count_attrs})"
+                        f"number must be in available range: "
+                        f"(1, {airplane_attr_name}): "
+                        f"(1, {count_attrs})"
                     }
                 )
 
@@ -147,9 +166,7 @@ class Ticket(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return (
-            f"{str(self.flight)} (row: {self.row}, seat: {self.seat})"
-        )
+        return f"{str(self.flight)} (row: {self.row}, seat: {self.seat})"
 
     class Meta:
         unique_together = ("flight", "row", "seat")

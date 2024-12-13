@@ -1,6 +1,7 @@
 from django.db import transaction
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
+from rest_framework.validators import UniqueTogetherValidator
 
 from airport.models import (
     Airport,
@@ -10,7 +11,7 @@ from airport.models import (
     Order,
     Ticket,
     Flight,
-    Crew
+    Crew,
 )
 
 
@@ -39,10 +40,28 @@ class AirplaneTypeSerializer(serializers.ModelSerializer):
 
 
 class AirplaneSerializer(serializers.ModelSerializer):
+    airplane_type_image = serializers.ImageField(
+        source="airplane_type.image", read_only=True
+    )
+
+    class Meta:
+        model = Airplane
+        fields = (
+            "id",
+            "name",
+            "rows",
+            "seats_in_row",
+            "airplane_type",
+            "airplane_type_image",
+        )
+
+
+class AirplaneListSerializer(serializers.ModelSerializer):
     airplane_type = serializers.CharField(source="airplane_type.name")
     airplane_type_image = serializers.ImageField(
         source="airplane_type.image", read_only=True
     )
+
     class Meta:
         model = Airplane
         fields = (
@@ -52,7 +71,7 @@ class AirplaneSerializer(serializers.ModelSerializer):
             "seats_in_row",
             "capacity",
             "airplane_type",
-            "airplane_type_image"
+            "airplane_type_image",
         )
 
 
@@ -60,6 +79,25 @@ class RouteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Route
         fields = ("id", "source", "destination", "distance")
+        validators = [
+            UniqueTogetherValidator(
+                queryset=Route.objects.all(),
+                fields=["source", "destination"],
+                message=(
+                    "Route with this source and destination already exists."
+                ),
+            )
+        ]
+
+    def validate(self, data):
+        source = data.get("source")
+        destination = data.get("destination")
+
+        if source == destination:
+            raise serializers.ValidationError(
+                "Source and destination cannot be the same."
+            )
+        return data
 
 
 class RouteListSerializer(serializers.ModelSerializer):
@@ -71,6 +109,7 @@ class RouteListSerializer(serializers.ModelSerializer):
     destination_image = serializers.ImageField(
         source="destination.image", read_only=True
     )
+
     class Meta:
         model = Route
         fields = (
@@ -79,7 +118,7 @@ class RouteListSerializer(serializers.ModelSerializer):
             "source_image",
             "destination_name",
             "destination_image",
-            "distance"
+            "distance",
         )
 
 
@@ -93,6 +132,21 @@ class FlightSerializer(serializers.ModelSerializer):
     class Meta:
         model = Flight
         fields = ("id", "departure_time", "arrival_time", "route", "airplane")
+
+    def validate(self, attrs):
+        departure_time = attrs.get("departure_time")
+        arrival_time = attrs.get("arrival_time")
+
+        if departure_time and arrival_time and arrival_time <= departure_time:
+            raise serializers.ValidationError(
+                {
+                    "non_field_errors": [
+                        "Arrival time must be after departure time."
+                    ]
+                }
+            )
+
+        return attrs
 
 
 class FlightListSerializer(serializers.ModelSerializer):
@@ -145,8 +199,7 @@ class FlightDetailSerializer(FlightSerializer):
     airplane = AirplaneSerializer(many=False, read_only=True)
     route = RouteSerializer(many=False, read_only=True)
     taken_places = TicketSeatsSerializer(
-        source="tickets", many=True, read_only=True
-    )
+        source="tickets", many=True, read_only=True)
 
     class Meta:
         model = Flight
@@ -157,7 +210,7 @@ class FlightDetailSerializer(FlightSerializer):
             "route",
             "airplane",
             "taken_places",
-            "crew"
+            "crew",
         )
 
 
