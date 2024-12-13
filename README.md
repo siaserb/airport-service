@@ -1,7 +1,3 @@
-Here is the revised version of your setup guide with grammar improvements, better phrasing, and technical corrections:
-
----
-
 # Airport Service
 
 ### Project Description
