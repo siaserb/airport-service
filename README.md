@@ -19,6 +19,7 @@ The **Airport Service API** is a RESTful service designed to manage airports, ro
 - **Sample Data Loading**: Populate the database with predefined data for testing.
 - **Admin Panel**: Easy management of system resources through a web interface.
 
+![Database scheme](./database_scheme.png)
 
 ## Set Up the Project
 
@@ -29,8 +30,8 @@ The **Airport Service API** is a RESTful service designed to manage airports, ro
 
 ### 2. Clone the Repository
 ```bash
-git clone <repository-url>
-cd airport-management-system
+git clone https://github.com/siaserb/airport-service.git
+cd airport-service
 ```
 
 ### 3. Set Up Environment Variables
@@ -123,75 +124,79 @@ You can log in directly through the Swagger interface using your superuser crede
 
 ## Available Methods and User Access for Entities
 
-### 1. **Airport**
-| HTTP Method | Description                              | Access            |
-|-------------|------------------------------------------|-------------------|
-| GET         | Retrieve a list of airports             | Authenticated users |
-| POST        | Add a new airport                       | Admin only        |
-| POST `/upload-image/` | Upload an image for an airport    | Admin only        |
+---
+
+### 1. **[Airplanes](http://localhost:8000/api/airport/airplanes/)**
+| HTTP Method                  | Endpoint                                   | Description                              | Access            |
+|------------------------------|--------------------------------------------|------------------------------------------|-------------------|
+| **GET**                     | `/api/airport/airplanes/`                 | Отримати список літаків                  | Authenticated users |
+| **POST**                    | `/api/airport/airplanes/`                 | Додати новий літак                       | Admin only        |
 
 ---
 
-### 2. **AirplaneType**
-| HTTP Method | Description                              | Access            |
-|-------------|------------------------------------------|-------------------|
-| GET         | Retrieve a list of airplane types       | Authenticated users|
-| POST        | Add a new airplane type                 | Admin only        |
-| POST `/upload-image/` | Upload an image for an airplane type | Admin only        |
+### 2. **[Airplane Types](http://localhost:8000/api/airport/airplane-types/)**
+| HTTP Method                  | Endpoint                                   | Description                              | Access            |
+|------------------------------|--------------------------------------------|------------------------------------------|-------------------|
+| **GET**                     | `/api/airport/airplane-types/`            | Отримати список типів літаків            | Authenticated users |
+| **POST**                    | `/api/airport/airplane-types/`            | Додати новий тип літака                  | Admin only        |
+| **POST**                    | `/api/airport/airplane-types/{id}/upload-image/` | Завантажити зображення для типу літака   | Admin only        |
 
 ---
 
-### 3. **Airplane**
-| HTTP Method | Description                              | Access            |
-|-------------|------------------------------------------|-------------------|
-| GET         | Retrieve a list of airplanes            | Authenticated users |
-| POST        | Add a new airplane                      | Admin only        |
-
-**Filters:**
-- `airplane_type`: Filter by airplane type (ID).
-- `airplane_name`: Filter by airplane name.
+### 3. **[Airports](http://localhost:8000/api/airport/airports/)**
+| HTTP Method                  | Endpoint                                   | Description                              | Access            |
+|------------------------------|--------------------------------------------|------------------------------------------|-------------------|
+| **GET**                     | `/api/airport/airports/`                  | Отримати список аеропортів               | Authenticated users |
+| **POST**                    | `/api/airport/airports/`                  | Додати новий аеропорт                    | Admin only        |
+| **POST**                    | `/api/airport/airports/{id}/upload-image/` | Завантажити зображення для аеропорту     | Admin only        |
 
 ---
 
-### 4. **Route**
-| HTTP Method | Description                              | Access            |
-|-------------|------------------------------------------|-------------------|
-| GET         | Retrieve a list of routes               | Authenticated users |
-| POST        | Add a new route                         | Admin only        |
-
-**Filters:**
-- `source`: Filter by source (ID).
-- `destination`: Filter by destination (ID).
+### 4. **[Crew](http://localhost:8000/api/airport/crew/)**
+| HTTP Method                  | Endpoint                                   | Description                              | Access            |
+|------------------------------|--------------------------------------------|------------------------------------------|-------------------|
+| **GET**                     | `/api/airport/crew/`                      | Отримати список членів екіпажу           | Authenticated users |
+| **POST**                    | `/api/airport/crew/`                      | Додати нового члена екіпажу              | Admin only        |
 
 ---
 
-### 5. **Crew**
-| HTTP Method | Description                              | Access            |
-|-------------|------------------------------------------|-------------------|
-| GET         | Retrieve a list of crews                | Authenticated users |
-| POST        | Add a new crew                          | Admin only        |
+### 5. **[Flights](http://localhost:8000/api/airport/flights/)**
+| HTTP Method                  | Endpoint                                   | Description                              | Access              |
+|------------------------------|--------------------------------------------|------------------------------------------|---------------------|
+| **GET**                     | `/api/airport/flights/`                   | Отримати список рейсів                   | Everyone            |
+| **GET**                     | `/api/airport/flights/{id}/`              | Отримати детальну інформацію про рейс    | Everyone   |
+| **POST**                    | `/api/airport/flights/`                   | Додати новий рейс                        | Admin only          |
+| **PUT**                     | `/api/airport/flights/{id}/`              | Оновити дані рейсу                       | Admin only          |
+| **PATCH**                   | `/api/airport/flights/{id}/`              | Частково оновити дані рейсу              | Admin only          |
+| **DELETE**                  | `/api/airport/flights/{id}/`              | Видалити рейс                            | Admin only          |
 
 ---
 
-### 6. **Flight**
-| HTTP Method | Description                              | Access            |
-|-------------|------------------------------------------|-------------------|
-| GET         | Retrieve a list of flights              | All users (read-only) |
-| GET (detail)| Retrieve flight details                 | All users (read-only) |
-| POST        | Add a new flight                        | Admin only        |
-| DELETE      | Remove flight                           | Admin only        |
-
-**Filters:**
-- `route`: Filter by route (ID).
-- `airplane`: Filter by airplane (ID).
-- `date`: Filter by flight date.
-- `crew`: Filter by crew (list of IDs).
+### 6. **[Orders](http://localhost:8000/api/airport/orders/)**
+| HTTP Method                  | Endpoint                                   | Description                              | Access            |
+|------------------------------|--------------------------------------------|------------------------------------------|-------------------|
+| **GET**                     | `/api/airport/orders/`                    | Отримати список замовлень                | Authenticated users |
+| **POST**                    | `/api/airport/orders/`                    | Додати нове замовлення                   | Authenticated users |
 
 ---
 
-### 7. **Order**
-| HTTP Method | Description                              | Access            |
-|-------------|------------------------------------------|-------------------|
-| GET         | Retrieve a list of orders               | Authenticated users (own orders only) |
-| POST        | Add a new order                         | Authenticated users |
+### 7. **[Routes](http://localhost:8000/api/airport/routes/)**
+| HTTP Method                  | Endpoint                                   | Description                              | Access            |
+|------------------------------|--------------------------------------------|------------------------------------------|-------------------|
+| **GET**                     | `/api/airport/routes/`                    | Отримати список маршрутів                | Authenticated users |
+| **POST**                    | `/api/airport/routes/`                    | Додати новий маршрут                     | Admin only        |
 
+---
+
+### 8. **[User](http://localhost:8000/api/user/me/)**
+| HTTP Method                  | Endpoint                                   | Description                              | Access            |
+|------------------------------|--------------------------------------------|------------------------------------------|-------------------|
+| **GET**                     | `/api/user/me/`                           | Отримати інформацію про поточного користувача | Authenticated users |
+| **PUT**                     | `/api/user/me/`                           | Оновити дані поточного користувача       | Authenticated users |
+| **PATCH**                   | `/api/user/me/`                           | Частково оновити дані користувача        | Authenticated users |
+| **POST**                    | `/api/user/register/`                     | Зареєструвати нового користувача         | Public            |
+| **POST**                    | `/api/user/token/`                        | Отримати токен доступу                   | Public            |
+| **POST**                    | `/api/user/token/refresh/`                | Оновити токен доступу                    | Public            |
+| **POST**                    | `/api/user/token/verify/`                 | Перевірити валідність токену             | Public            |
+
+---
